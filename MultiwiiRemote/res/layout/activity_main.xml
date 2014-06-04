@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/mwdragon_background"
+    android:gravity="left"
+    tools:context=".MainActivity" 
+    >
+
+        <view.mjpeg.MjpegView
+            android:id="@+id/webcamView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:visibility="invisible" />
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="6dip" >
+
+    <ToggleButton
+        android:id="@+id/aux1Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/aux1"
+        android:text="@string/aux1"
+        android:textOff="@string/aux1"
+        android:textOn="@string/aux1" />
+
+    <ToggleButton
+        android:id="@+id/aux2Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/aux1Btn"
+        android:layout_below="@+id/aux1Btn"
+        android:text="@string/aux2"
+        android:textOff="@string/aux2"
+        android:textOn="@string/aux2" />
+
+    <ToggleButton
+        android:id="@+id/aux3Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/aux2Btn"
+        android:text="@string/aux3"
+        android:textOff="@string/aux3"
+        android:textOn="@string/aux3" />
+
+        <TextView
+        android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/joystickView"
+        android:text="@string/connectionStatus"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    <view.joystick.JoystickView
+        android:id="@+id/joystickView"
+        android:layout_width="300dip"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/aux2Btn"
+        android:layout_toRightOf="@+id/throttleView" />
+
+    <ToggleButton
+        android:id="@+id/aux4Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/aux3Btn"
+        android:layout_below="@+id/aux3Btn"
+        android:text="@string/aux4"
+        android:textOff="@string/aux4"
+        android:textOn="@string/aux4" />
+
+    <TextView
+        android:id="@+id/throttleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Button
+        android:id="@+id/switchModes"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/aux1Btn"
+        android:layout_alignRight="@+id/joystickView"
+        android:text="@string/switchModeBtn" />
+
+    <TextView
+        android:id="@+id/debugTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/aux4Btn"
+        android:layout_below="@+id/aux4Btn"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+   <!--  <view.VerticalProgressBar
+        android:id="@+id/signalStrength"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/aux2Btn"
+        android:layout_toLeftOf="@+id/btnMenu"
+        android:clickable="false"
+        android:contentDescription="@string/signal_strength"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:longClickable="false"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/progressbar_color" />-->
+
+    <CheckBox
+        android:id="@+id/chkUsePhoneHeading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/switchModes"
+        android:layout_alignTop="@+id/switchModes"
+        android:layout_toLeftOf="@+id/switchModes"
+        android:text="@string/phone_heading" />
+
+</RelativeLayout>
+</RelativeLayout>

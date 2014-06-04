@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+	<PreferenceCategory android:title="@string/action_settings" >
+		<ListPreference android:entries="@array/comMode" android:dialogTitle="Communication mode" android:defaultValue="Bluetooth" android:key="comMode" android:entryValues="@array/comMode" android:title="Communication Mode" android:summary="Wifi or bluetooth" />
+		
+		<EditTextPreference android:key="LOWSIGNALTHRESHOLD" android:title="LowSignalThreshold" android:defaultValue="30"/>
+		<EditTextPreference android:key="THROTTLERESOLUTION" android:title="Throttle resolution" android:defaultValue="10"/>
+		<ListPreference android:key="ROLLPITCHLIMIT" android:entries="@array/rollPitchLimit" android:title="Joystick" android:summary="Adjust Joystick range" android:entryValues="@array/rollPitchLimit" android:defaultValue="150" />
+		<EditTextPreference android:key="SENSORFILTERALPHA" android:title="Sensor Filter" android:summary="The amount of smoothing of the accelerometer between 0 and 1. A lower value means more smoothing. -1 to cancel" android:defaultValue="0.03"/>
+		<CheckBoxPreference android:key="TEXTTOSPEACH" android:defaultValue="true" android:title="Text To Speach" android:summary="Text"/>
+		<CheckBoxPreference android:key="UIDEBUG" android:defaultValue="true" android:title="Debug Text" android:summary="Enable to see roll/pitch/yaw/magnetic orientation on screen"/>
+		<CheckBoxPreference android:key="USECAMERA" android:defaultValue="false" android:title="Use Camera" android:summary="Enables viewing camera video if it is connected to port 8080."/>
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Bluetooth" >
+	<EditTextPreference android:key="BAUDRATE" android:title="Baud Rate" android:defaultValue="115200"/>
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Wifi" >
+		<EditTextPreference android:key="IPADDRESS" android:title="Ip Address" android:defaultValue="192.168.1.1"/>
+		<EditTextPreference android:key="IPPORT" android:title="Port Number" android:defaultValue="8082"/>
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Aux Rename" >
+		<EditTextPreference android:key="AUX1TXT" android:title="AUX1" android:defaultValue="@string/aux1"/>
+		<EditTextPreference android:key="AUX2TXT" android:title="AUX2" android:defaultValue="@string/aux2"/>
+		<EditTextPreference android:key="AUX3TXT" android:title="AUX3" android:defaultValue="@string/aux3"/>
+		<EditTextPreference android:key="AUX4TXT" android:title="AUX4" android:defaultValue="@string/aux4"/>
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Other" >
+		<CheckBoxPreference android:key="PREVENTEXITWHENFLYING" android:defaultValue="true" android:title="Prevent Exit when flying" android:summary="Disables the home and back button when throttle is 1100 or above."/>
+		<EditTextPreference android:key="TRIMROLL" android:title="Roll Trim" android:defaultValue="0"/>
+		<EditTextPreference android:key="TRIMPITCH" android:title="Pitch Trim" android:defaultValue="0"/>
+	</PreferenceCategory>
+	
+</PreferenceScreen>

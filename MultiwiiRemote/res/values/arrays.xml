@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="rollPitchLimit">
+        <item name="100">100</item>
+        <item name="150">150</item>
+        <item name="200">200</item>
+        <item name="250">250</item>
+        <item name="300">300</item>
+        <item name="350">350</item>
+        <item name="400">400</item>
+        <item name="450">450</item>
+        <item name="500">500</item>
+    </string-array>
+    <string-array name="comMode">
+        <item name="Bluetooth">Bluetooth</item>
+        <item name="Wifi">Wifi</item>
+    </string-array>
+    
+    <string-array name="menuString">
+        <item name="Connect">Connect</item>
+        <item name="Toggle Accel">Toggle Accel</item>
+        <item name="Settings">Settings</item>
+    </string-array>
+</resources>
