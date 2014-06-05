@@ -4,8 +4,9 @@
 	<PreferenceCategory android:title="@string/action_settings" >
 		<ListPreference android:entries="@array/comMode" android:dialogTitle="Communication mode" android:defaultValue="Bluetooth" android:key="comMode" android:entryValues="@array/comMode" android:title="Communication Mode" android:summary="Wifi or bluetooth" />
 		
-		<EditTextPreference android:key="LOWSIGNALTHRESHOLD" android:title="LowSignalThreshold" android:defaultValue="30"/>
-		<EditTextPreference android:key="THROTTLERESOLUTION" android:title="Throttle resolution" android:defaultValue="10"/>
+		<EditTextPreference android:key="REFRESHRATE" android:title="Refresh rate" android:summary="Interval for sending data to multiwii in milliseconds. Bluetooth minimum: 40. Wifi minimum: 20" android:defaultValue="50"/>
+		<EditTextPreference android:key="LOWSIGNALTHRESHOLD" android:title="Low Signal threshold" android:summary="Beep when signal under this level" android:defaultValue="30"/>
+		<EditTextPreference android:key="THROTTLERESOLUTION" android:title="Throttle resolution" android:summary="How much the throttle increases or increases with each step" android:defaultValue="10"/>
 		<ListPreference android:key="ROLLPITCHLIMIT" android:entries="@array/rollPitchLimit" android:title="Joystick" android:summary="Adjust Joystick range" android:entryValues="@array/rollPitchLimit" android:defaultValue="150" />
 		<EditTextPreference android:key="SENSORFILTERALPHA" android:title="Sensor Filter" android:summary="The amount of smoothing of the accelerometer between 0 and 1. A lower value means more smoothing. -1 to cancel" android:defaultValue="0.03"/>
 		<CheckBoxPreference android:key="TEXTTOSPEACH" android:defaultValue="true" android:title="Text To Speach" android:summary="Text"/>
@@ -30,7 +31,7 @@
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="Other" >
-		<CheckBoxPreference android:key="PREVENTEXITWHENFLYING" android:defaultValue="true" android:title="Prevent Exit when flying" android:summary="Disables the home and back button when throttle is 1100 or above."/>
+		<CheckBoxPreference android:key="PREVENTEXITWHENFLYING" android:defaultValue="true" android:title="Prevent Exit when flying" android:summary="Disables the back button when throttle is 1100 or above."/>
 		<EditTextPreference android:key="TRIMROLL" android:title="Roll Trim" android:defaultValue="0"/>
 		<EditTextPreference android:key="TRIMPITCH" android:title="Pitch Trim" android:defaultValue="0"/>
 	</PreferenceCategory>

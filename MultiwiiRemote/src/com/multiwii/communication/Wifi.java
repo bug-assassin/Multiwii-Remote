@@ -16,7 +16,6 @@ public class Wifi extends Communication {
 	public Wifi(Context context) {
 		super(context);
 		wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		Enable();
 	}
 
 	// TODO connectToNetwork not working
@@ -89,6 +88,7 @@ public class Wifi extends Communication {
 
 	@Override
 	public boolean Connect(String ip, int port) {
+		Enable();
 		address = ip + ":" + port;
 		setState(STATE_CONNECTING);
 		try {

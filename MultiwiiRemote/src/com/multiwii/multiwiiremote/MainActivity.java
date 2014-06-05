@@ -74,8 +74,6 @@ public class MainActivity extends BaseActivity {
 		auxBtn[0].setEnabled(false);
 		
 		settingsModified();
-		
-		setStatus("Ready " + app.comMode.toString());
 	}
 	
 	public void FrequentTasks() {
@@ -112,6 +110,20 @@ public class MainActivity extends BaseActivity {
 		rc.TrimRoll = app.TrimRoll;
 		rc.TrimPitch = app.TrimPitch;
 		rc.RollPitchLimit = app.RollPitchLimit;
+		
+		if (app.AuxTextChanged) {
+			setAuxbtnTxt(auxBtn[0], app.Aux1Txt);
+			setAuxbtnTxt(auxBtn[1], app.Aux2Txt);
+			setAuxbtnTxt(auxBtn[2], app.Aux3Txt);
+			setAuxbtnTxt(auxBtn[3], app.Aux4Txt);
+			app.AuxTextChanged = false;
+		}
+		setStatus("Ready " + app.comMode.toString());
+	}
+	private void setAuxbtnTxt(ToggleButton mButton, String text) {
+		mButton.setText(text);
+		mButton.setTextOn(text);
+		mButton.setTextOff(text);
 	}
 	public void Connect() {
 		switch (app.comMode) {
@@ -126,22 +138,10 @@ public class MainActivity extends BaseActivity {
 	}
 	public void UpdateUI() {
 		txtHeader.setText(rc.adjustMode.getValue() + rc.get(rc.adjustMode.getId()));
-		txtUIDebug.setText(!app.UIDebug ? "" : rc.toStringNoThrottle() + "Heading: " + app.sensors.Heading);
+		txtUIDebug.setText(app.UIDebug ? rc.toStringNoThrottle() + "Heading: " + app.sensors.Heading : "");
 		txtStatus.setText(app.Status);
-		if (app.AuxTextChanged) {
-			setAuxbtnTxt(auxBtn[0], app.Aux1Txt);
-			setAuxbtnTxt(auxBtn[1], app.Aux2Txt);
-			setAuxbtnTxt(auxBtn[2], app.Aux3Txt);
-			setAuxbtnTxt(auxBtn[3], app.Aux4Txt);
-			app.AuxTextChanged = false;
-		}
 	}
-	private void setAuxbtnTxt(ToggleButton mButton, String text) {
-		mButton.setText(text);
-		mButton.setTextOn(text);
-		mButton.setTextOff(text);
-	}
-
+	
 	// int requests[] = new int[] { MultirotorData.MSP_DEBUG,
 	// MultirotorData.MSP_ALTITUDE, MultirotorData.MSP_RC };
 	public void onSensorsStateChangeMagAcc() {
@@ -173,13 +173,12 @@ public class MainActivity extends BaseActivity {
 	public void aux4_Click(View v) {
 		rc.set(AUX4, ((ToggleButton) v).isChecked());
 	}
-
+	
 	@Override
 	protected void onStop() {
 		super.onStop();
 		app.stop();
 	}
-
 	// ///////////////////Menu///////////////////
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {

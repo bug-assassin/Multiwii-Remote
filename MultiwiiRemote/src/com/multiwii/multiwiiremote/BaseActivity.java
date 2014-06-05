@@ -35,15 +35,14 @@ public abstract class BaseActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		app.sensors.startMagACC();
+		app.onResume();
 		StartUpdateThread();
 	}
 	@Override
 	protected void onPause() {
 		super.onPause();
-		app.SaveSettings();
-		app.sensors.stopMagACC();
 		StopUpdateThread();
+		app.onPause();
 	}
 	@Override
 	protected void onStop() {
@@ -92,7 +91,7 @@ public abstract class BaseActivity extends Activity {
 		}
 
 		public void cancel() {
-		cancel = true;
+			cancel = true;
 		}
 	}
 }

@@ -207,37 +207,7 @@ public abstract class MultirotorData {
 		mConnectThread = new ConnectThread(communication, address, speed, startDelay);
 		mConnectThread.start();
 	}
-public void stop() {
-stopThreads();
-CloseLoggingFile();
-}
-	private synchronized void stopThreads() {
-		//if (D)	Log.d(app.TAG, "stopThreads");
-
-		// Cancel any thread attempting to make a connection
-		if (mConnectThread != null) {
-			mConnectThread.cancel();
-			mConnectThread = null;
-		}
-
-		// Cancel any thread currently running a connection
-		if (mConnectedThread != null) {
-			mConnectedThread.cancel();
-			mConnectedThread = null;
-		}
-		/*if (mConnectedWriteThread != null) {
-			mConnectedWriteThread.cancel();
-			mConnectedWriteThread = null;
-		}
-
-		if (mConnectedReadThread != null) {
-			mConnectedReadThread.cancel();
-			mConnectedReadThread = null;
-		}*/
-
-	}
-
-	private void connected(int startDelay) {
+		private void connected(int startDelay) {
 		stopThreads(); // Cancel All Previous Threads
 		if(startDelay > 1)
 			try {
@@ -271,6 +241,35 @@ CloseLoggingFile();
         //r.write(out);
 		mConnectedThread.write(out);
    }
+	public void stop() {
+	stopThreads();
+	CloseLoggingFile();
+	}
+	private synchronized void stopThreads() {
+		//if (D)	Log.d(app.TAG, "stopThreads");
+
+		// Cancel any thread attempting to make a connection
+		if (mConnectThread != null) {
+			mConnectThread.cancel();
+			mConnectThread = null;
+		}
+
+		// Cancel any thread currently running a connection
+		if (mConnectedThread != null) {
+			mConnectedThread.cancel();
+			mConnectedThread = null;
+		}
+		/*if (mConnectedWriteThread != null) {
+			mConnectedWriteThread.cancel();
+			mConnectedWriteThread = null;
+		}
+
+		if (mConnectedReadThread != null) {
+			mConnectedReadThread.cancel();
+			mConnectedReadThread = null;
+		}*/
+
+	}
 
 	private class ConnectThread extends Thread {
 		private final Communication connection;
