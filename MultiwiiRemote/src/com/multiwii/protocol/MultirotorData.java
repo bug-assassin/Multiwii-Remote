@@ -207,6 +207,7 @@ public abstract class MultirotorData {
 		mConnectThread = new ConnectThread(communication, address, speed, startDelay);
 		mConnectThread.start();
 	}
+<<<<<<< HEAD
 	public void Connect(String address, int speed, int startDelay, String ssid) {
 		stopThreads();
 
@@ -215,6 +216,9 @@ public abstract class MultirotorData {
 	}
 	
 	private void connected(int startDelay) {
+=======
+		private void connected(int startDelay) {
+>>>>>>> origin/master
 		stopThreads(); // Cancel All Previous Threads
 		if(startDelay > 1)
 			try {

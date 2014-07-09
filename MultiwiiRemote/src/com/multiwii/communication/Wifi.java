@@ -16,6 +16,7 @@ public class Wifi extends Communication {
 	public Wifi(Context context) {
 		super(context);
 		wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+<<<<<<< HEAD
 	}
 	//TODO TEST
 	public boolean connectToNetwork(String ssid) {
@@ -27,6 +28,8 @@ public class Wifi extends Communication {
 		if(wifiConfiguration == null)
 			sendMessageToUI_Toast("Please add the network to your device.");		
 		return wifiConfiguration != null;
+=======
+>>>>>>> origin/master
 	}
 	private boolean isAlreadyConnectedToSSID(String ssid) {
 	String mSSID = getCurrentSSID(context);
