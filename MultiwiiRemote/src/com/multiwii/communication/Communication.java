@@ -113,7 +113,7 @@ public abstract class Communication {
 	}
 
 	public abstract void Enable();
-
+	
 	/**
 	 * After connection is made set Connected=true
 	 * 
@@ -134,6 +134,8 @@ public abstract class Communication {
 	public abstract void Close();
 
 	public abstract void Disable();
+	
+	protected abstract void connectionLost();
 	
 	public abstract String getConnectionState();
 	

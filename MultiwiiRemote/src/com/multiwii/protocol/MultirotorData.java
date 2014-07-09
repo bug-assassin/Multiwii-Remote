@@ -207,36 +207,13 @@ public abstract class MultirotorData {
 		mConnectThread = new ConnectThread(communication, address, speed, startDelay);
 		mConnectThread.start();
 	}
-public void stop() {
-stopThreads();
-CloseLoggingFile();
-}
-	private synchronized void stopThreads() {
-		//if (D)	Log.d(app.TAG, "stopThreads");
+	public void Connect(String address, int speed, int startDelay, String ssid) {
+		stopThreads();
 
-		// Cancel any thread attempting to make a connection
-		if (mConnectThread != null) {
-			mConnectThread.cancel();
-			mConnectThread = null;
-		}
-
-		// Cancel any thread currently running a connection
-		if (mConnectedThread != null) {
-			mConnectedThread.cancel();
-			mConnectedThread = null;
-		}
-		/*if (mConnectedWriteThread != null) {
-			mConnectedWriteThread.cancel();
-			mConnectedWriteThread = null;
-		}
-
-		if (mConnectedReadThread != null) {
-			mConnectedReadThread.cancel();
-			mConnectedReadThread = null;
-		}*/
-
+		mConnectThread = new ConnectThread(communication, address, speed, startDelay, ssid);
+		mConnectThread.start();
 	}
-
+	
 	private void connected(int startDelay) {
 		stopThreads(); // Cancel All Previous Threads
 		if(startDelay > 1)
@@ -271,6 +248,35 @@ CloseLoggingFile();
         //r.write(out);
 		mConnectedThread.write(out);
    }
+	public void stop() {
+	stopThreads();
+	CloseLoggingFile();
+	}
+	private synchronized void stopThreads() {
+		//if (D)	Log.d(app.TAG, "stopThreads");
+
+		// Cancel any thread attempting to make a connection
+		if (mConnectThread != null) {
+			mConnectThread.cancel();
+			mConnectThread = null;
+		}
+
+		// Cancel any thread currently running a connection
+		if (mConnectedThread != null) {
+			mConnectedThread.cancel();
+			mConnectedThread = null;
+		}
+		/*if (mConnectedWriteThread != null) {
+			mConnectedWriteThread.cancel();
+			mConnectedWriteThread = null;
+		}
+
+		if (mConnectedReadThread != null) {
+			mConnectedReadThread.cancel();
+			mConnectedReadThread = null;
+		}*/
+
+	}
 
 	private class ConnectThread extends Thread {
 		private final Communication connection;
@@ -278,6 +284,7 @@ CloseLoggingFile();
 		private final int speed;
 		private boolean stop = false;
 		private int startDelay;
+		private String ssid;
 
 		public ConnectThread(Communication connection, String address, int speed, int startDelay) {
 			this.connection = connection;
@@ -285,13 +292,26 @@ CloseLoggingFile();
 			this.speed = speed;
 			this.startDelay = startDelay;
 		}
+		public ConnectThread(Communication connection, String address, int speed, int startDelay, String ssid) {
+			this.connection = connection;
+			this.address = address;
+			this.speed = speed;
+			this.startDelay = startDelay;
+			this.ssid = ssid;
+		}
 
 		public void run() {
 			//Log.i(TAG, "BEGIN mConnectThread");
 			setName("ConnectThread");
 
-			if (stop)
-				return;
+			if (stop) return;
+			
+			if(connection instanceof Wifi && app.ssid.length > 0) {
+				Wifi mWifi = (Wifi) connection;
+				if(!mWifi.connectToNetwork(app.ssid)) return;
+			}
+			
+			
 			connection.Connect(address, speed);
 			if (stop)
 				connection.Close();

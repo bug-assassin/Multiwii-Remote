@@ -16,36 +16,41 @@ public class Wifi extends Communication {
 	public Wifi(Context context) {
 		super(context);
 		wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+	}
+	//TODO TEST
+	public boolean connectToNetwork(String ssid) {
 		Enable();
+		if(isAlreadyConnectedToSSID(ssid, context)) return true;
+		WifiConfiguration wifiConfiguration = getConfiguredNetwork(wifiManager, ssid);
+		if(wifiConfiguration != null)
+			result = wifiManager.enableNetwork(wifiConfiguration.networkId, true);
+		if(wifiConfiguration == null)
+			sendMessageToUI_Toast("Please add the network to your device.");		
+		return wifiConfiguration != null;
 	}
-
-	// TODO connectToNetwork not working
-	public boolean connectToNetwork(String ssid, String key) {
-		WifiConfiguration wifiConfig = new WifiConfiguration();
-		wifiConfig.SSID = String.format("\"%s\"", ssid);
-		wifiConfig.preSharedKey = String.format("\"%s\"", key);
-		wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-
-		int netId;
-		WifiConfiguration currentConf = getConfiguredNetwork(wifiManager, ssid);
-		if (currentConf == null)
-			netId = wifiManager.addNetwork(wifiConfig);
-		else
-			netId = currentConf.networkId;
-
-		if (wifiManager.getConnectionInfo().getSSID().equalsIgnoreCase(ssid))
-			return true;
-
-		wifiManager.disconnect();
-		wifiManager.enableNetwork(netId, true);
-		return wifiManager.reconnect();
+	private boolean isAlreadyConnectedToSSID(String ssid) {
+	String mSSID = getCurrentSSID(context);
+	if(mSSID == null) return false;
+		return mSSID.equalsIgnoreCase(ssid);
 	}
-
-	private WifiConfiguration getConfiguredNetwork(WifiManager wifiManager,
-			String ssid) {
+	public String getCurrentSSID() {
+	  String ssid = null;
+	  ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+	  NetworkInfo networkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+	  if (networkInfo.isConnected()) {
+		final WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+		final WifiInfo connectionInfo = wifiManager.getConnectionInfo();
+		if (connectionInfo != null && !TextUtils.isEmpty(connectionInfo.getSSID())) {
+		  ssid = connectionInfo.getSSID();
+		}
+	  }
+	  return ssid;
+	}
+	private WifiConfiguration getConfiguredNetwork(WifiManager wifiManager,	String ssid) {
 		List<WifiConfiguration> myList = wifiManager.getConfiguredNetworks();
 		for (WifiConfiguration current : myList) {
-			if (current.SSID.equalsIgnoreCase(ssid))
+			String wifiConfigSSID = current.SSID.replace("\"", "");
+			if (wifiConfigSSID.equalsIgnoreCase(ssid))
 				return current;
 		}
 		return null;
@@ -89,6 +94,7 @@ public class Wifi extends Communication {
 
 	@Override
 	public boolean Connect(String ip, int port) {
+		Enable();
 		address = ip + ":" + port;
 		setState(STATE_CONNECTING);
 		try {
@@ -100,13 +106,18 @@ public class Wifi extends Communication {
 			Connected = true;
 		} catch (Exception e) {
 			e.printStackTrace();
-			setState(STATE_NONE);
-			setState(e.getMessage());
-			Connected = false;
+			connectionLost();
 		}
 		return Connected;
 	}
 
+	@Override
+	protected void connectionLost() {
+		setState(STATE_NONE);
+		setState(e.getMessage());
+		Connected = false;
+	}
+	
 	@Override
 	public boolean dataAvailable() {
 		try {

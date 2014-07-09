@@ -89,7 +89,8 @@ public class RCSignals {
 			rc_signals[x] = rc_signals_raw[x];
 		rc_signals[ROLL] = rc_signals_raw[ROLL] + TrimRoll;
 		rc_signals[PITCH] = rc_signals_raw[PITCH] + TrimPitch;
-		for(int x = 0; x < rc_signals.length; x++) {
+		
+		for(int x = 0; x < rc_signals.length; x++) { //Verify bounds
 			if(rc_signals[x] < RC_MIN) rc_signals[x] = RC_MIN;
 			if(rc_signals[x] > RC_MAX) rc_signals[x] = RC_MAX;
 		}

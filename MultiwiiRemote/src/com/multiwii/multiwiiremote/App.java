@@ -42,6 +42,7 @@ public class App extends Application implements Sensors.MagAccListener {
 	public boolean PreventExitWhenFlying;
 	public boolean TextToSpeach;
 	public CommunicationMode comMode;
+	public String ssid;
 	
 	public String Aux1Txt;
 	public String Aux2Txt;
@@ -52,7 +53,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		LOWSIGNALTHRESHOLD(30),
 		TEXTTOSPEACH(true),
 		UIDEBUG(false), 
-		//REFRESHRATE(40), //TODO add xml
+		REFRESHRATE(40), //TODO add xml
 		TRIMROLL(0), 
 		TRIMPITCH(0),
 		THROTTLERESOLUTION(10),
@@ -67,7 +68,8 @@ public class App extends Application implements Sensors.MagAccListener {
 		SENSORFILTERALPHA(0.03f),
 		//KEEPSCREENON(true),
 		PREVENTEXITWHENFLYING(true),
-		ROLLPITCHLIMIT(250);
+		ROLLPITCHLIMIT(250)
+		SSID("");
 	
 		private String value;
 		private Boolean bValue;
@@ -166,18 +168,24 @@ public class App extends Application implements Sensors.MagAccListener {
 		Init();
 		
 		tts = new TTS(getApplicationContext());
-		prepareSounds();
 		
 		varioSoundClass = new VarioSoundClass();
 	}
 
-	public void Init() {
+	protected void Init() {
 		ReadSettings();
+		prepareSounds();
 	}
-
+	private void prepareSounds() {
+		soundManager = new SoundManager(getApplicationContext());
+		/*soundManager.addSound(LOW_SIGNAL, R.raw.lowSignal);
+		soundManager.addSound(LOW_PHONE_BATTERY, R.raw.lowPhoneBattery);
+		soundManager.addSound(BLIP, R.raw.blip);*///TODO
+	}
 	public void ReadSettings() {
 		LowSignalThreshold = Integer.parseInt(prefs.getString(LOWSIGNALTHRESHOLD.toString(), LOWSIGNALTHRESHOLD.DefaultS()));
 		TextToSpeach = prefs.getBoolean(TEXTTOSPEACH.toString(), TEXTTOSPEACH.DefaultB());
+		RefreshRate = Intger.parseInt(editor.getString(REFRESHRATE.toString(), REFRESHRATE.DefaultS()));
 		UIDebug = prefs.getBoolean(UIDEBUG.toString(), UIDEBUG.DefaultB());
 		TrimRoll = Integer.parseInt(prefs.getString(TRIMROLL.toString(), TRIMROLL.DefaultS()));
 		TrimPitch = Integer.parseInt(prefs.getString(TRIMPITCH.toString(), TRIMPITCH.DefaultS()));
@@ -195,6 +203,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		UseCamera = prefs.getBoolean(USECAMERA.toString(), USECAMERA.DefaultB());
 		PreventExitWhenFlying = prefs.getBoolean(PREVENTEXITWHENFLYING.toString(), PREVENTEXITWHENFLYING.DefaultB());
 		RollPitchLimit = Integer.parseInt(prefs.getString(ROLLPITCHLIMIT.toString(), ROLLPITCHLIMIT.DefaultS()));
+		ssid = prefs.getString(SSID.toString(), SSID.DefaultS());
 		
 		sensors.setFilter(Float.parseFloat(prefs.getString(SENSORFILTERALPHA.toString(), SENSORFILTERALPHA.DefaultS())));
 		comMode = CommunicationMode.valueOf(prefs.getString("comMode", "Bluetooth").toUpperCase(Locale.US));
@@ -206,6 +215,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		prefsEditor.putString(LOWSIGNALTHRESHOLD.toString(), LowSignalThreshold + "");
 		prefsEditor.putBoolean(TEXTTOSPEACH.toString(), TextToSpeach);
 		prefsEditor.putBoolean(UIDEBUG.toString(), UIDebug);
+		prefsEditor.putString(REFRESHRATE.toString(), RefreshRate + "");
 		prefsEditor.putString(TRIMROLL.toString(), TrimRoll + "");
 		prefsEditor.putString(TRIMPITCH.toString(), TrimPitch + "");
 		prefsEditor.putString(THROTTLERESOLUTION.toString(), ThrottleResolution + "");
@@ -221,6 +231,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		prefsEditor.putBoolean(USECAMERA.toString(), UseCamera);
 		prefsEditor.putBoolean(PREVENTEXITWHENFLYING.toString(), PreventExitWhenFlying);
 		prefsEditor.putString(ROLLPITCHLIMIT.toString(), RollPitchLimit + "");
+		prefsEditor.putString(SSID.toString(), ssid);
 		
 		prefsEditor.putString(SENSORFILTERALPHA.toString(), SensorFilterAlpha + "");
 		//comMode = CommunicationMode.valueOf(prefs.getString("comMode", "Bluetooth").toUpperCase(Locale.US));
@@ -237,7 +248,7 @@ public class App extends Application implements Sensors.MagAccListener {
 				signalStrengthTimer.reset();
 				int signalStrength = commMW.getStrength();
 				if(signalStrength != 0 && signalStrength < LowSignalThreshold) {
-					Say("Signal Low " + signalStrength);
+					Say("Low Signal " + signalStrength);
 				}
 			}
 			
@@ -281,17 +292,16 @@ public class App extends Application implements Sensors.MagAccListener {
 	public void Say(String text) {
 		if (TextToSpeach) tts.Speak(text);
 	}
-	private void prepareSounds() {
-		soundManager = new SoundManager(getApplicationContext());
-		/*soundManager.addSound(LOW_SIGNAL, R.raw.lowSignal);
-		soundManager.addSound(LOW_PHONE_BATTERY, R.raw.lowPhoneBattery);
-		soundManager.addSound(BLIP, R.raw.blip);*///TODO
+	public void onResume() {
+		app.sensors.start();
 	}
-	
+	public void onPause() {
+		app.SaveSettings();
+		app.sensors.stop();
+	}
 	public void stop() {
-			sensors.stop();
-			if(protocol != null) protocol.stop();
-			if (commMW != null) commMW.Close();
+		if(protocol != null) protocol.stop();
+		if (commMW != null) commMW.Close();
 	}
 	
 	@Override
@@ -301,6 +311,6 @@ public class App extends Application implements Sensors.MagAccListener {
 
 	@Override
 	public void onSensorsStateChangeMagAcc() {
-		mHandler.sendEmptyMessage(SENSORSCHANGED);
+		if(mHandler != null) mHandler.sendEmptyMessage(SENSORSCHANGED);
 	}
 }

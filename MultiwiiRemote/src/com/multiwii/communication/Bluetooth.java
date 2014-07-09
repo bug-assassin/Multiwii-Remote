@@ -20,7 +20,6 @@ public class Bluetooth extends Communication {
 
 	public Bluetooth(Context context) {
 		super(context);
-		Enable();
 	}
 
 	@Override
@@ -44,6 +43,7 @@ public class Bluetooth extends Communication {
 
 	@Override
 	public boolean Connect(String address, int speed) {
+		Enable();
 		setState(STATE_CONNECTING);
 		if (mBluetoothAdapter.isEnabled()) {
 			try {
@@ -174,9 +174,6 @@ return Connected;
 			if (btSocket != null)
 				btSocket.close();
 			Connected = false;
-
-			Toast.makeText(context, "Disconnected", Toast.LENGTH_LONG).show();
-
 		} catch (Exception e2) {
 			Log.e(TAG, "ON PAUSE: Unable to close socket.", e2);
 			Toast.makeText(context, "Unable to close socket", Toast.LENGTH_LONG).show();
