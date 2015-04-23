@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.multiwii.communication.Communication;
-
 import android.util.Log;
+
+import com.multiwii.communication.Communication;
+import com.multiwii.multiwiiremote.App;
 
 public class MultiWii230 extends MultirotorData {
 
@@ -25,7 +26,9 @@ public class MultiWii230 extends MultirotorData {
 		buttonCheckboxLabel = new String[0];
 		init();
 	}
-
+	public void setApp(App app){
+		this.app = app;
+	}
 	private void init() {
 		CHECKBOXITEMS = buttonCheckboxLabel.length;
 		activation = new int[CHECKBOXITEMS];
@@ -644,7 +647,11 @@ public void Request(int[] codes) {
 			rc_signals_array[index++] = (char) (channels8[i] & 0xFF);
 			rc_signals_array[index++] = (char) ((channels8[i] >> 8) & 0xFF);
 		}
-
+		String rcData = "";
+		for (int i : channels8){
+			rcData += String.valueOf(i) + " ";
+		}
+		Log.d("rc data:", rcData);
 		sendRequestMSP(requestMSP(MSP_SET_RAW_RC, rc_signals_array));
 
 		// TODO

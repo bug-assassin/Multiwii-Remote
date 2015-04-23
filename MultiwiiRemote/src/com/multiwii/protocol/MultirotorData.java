@@ -6,10 +6,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import com.multiwii.communication.Communication;
-
 import android.os.Environment;
 import android.util.Log;
+
+import com.multiwii.communication.Communication;
+import com.multiwii.communication.Wifi;
+import com.multiwii.multiwiiremote.App;
 
 public abstract class MultirotorData {
 
@@ -194,7 +196,7 @@ public abstract class MultirotorData {
 	private ConnectedThread mConnectedThread;
 	/*private ConnectedWriteThread mConnectedWriteThread;
 	private ConnectedReadThread mConnectedReadThread;*/
-	
+	protected App app;
 	
 	
 	public MultirotorData(Communication communication) {
@@ -207,7 +209,6 @@ public abstract class MultirotorData {
 		mConnectThread = new ConnectThread(communication, address, speed, startDelay);
 		mConnectThread.start();
 	}
-<<<<<<< HEAD
 	public void Connect(String address, int speed, int startDelay, String ssid) {
 		stopThreads();
 
@@ -215,10 +216,7 @@ public abstract class MultirotorData {
 		mConnectThread.start();
 	}
 	
-	private void connected(int startDelay) {
-=======
-		private void connected(int startDelay) {
->>>>>>> origin/master
+		private void connected(Communication connection, int startDelay) {
 		stopThreads(); // Cancel All Previous Threads
 		if(startDelay > 1)
 			try {
@@ -232,6 +230,7 @@ public abstract class MultirotorData {
 		mConnectedReadThread = new ConnectedReadThread(communication);
 		mConnectedReadThread.start();*/
 		mConnectedThread = new ConnectedThread(communication);
+		connection.Connected = true;
 	}
 	
 	public void write(List<Byte> payload) {
@@ -309,14 +308,17 @@ public abstract class MultirotorData {
 			setName("ConnectThread");
 
 			if (stop) return;
+//			Connect to SSID automatically
+//			if(connection instanceof Wifi && app.ssid.length() > 0) {
+//				Wifi mWifi = (Wifi) connection;
+//				if(mWifi.Connect(address, speed)) return;
+//				
+//			}
 			
-			if(connection instanceof Wifi && app.ssid.length > 0) {
-				Wifi mWifi = (Wifi) connection;
-				if(!mWifi.connectToNetwork(app.ssid)) return;
+			
+			if (connection.Connect(address, speed)){
+				connection.Connected = false;
 			}
-			
-			
-			connection.Connect(address, speed);
 			if (stop)
 				connection.Close();
 
@@ -327,7 +329,8 @@ public abstract class MultirotorData {
 			if (stop)
 				return;
 			// Start the connected thread
-			connected(startDelay);
+			Log.d("connected", "begin delay!!!");
+			connected(connection, startDelay);
 		}
 
 		public void cancel() {

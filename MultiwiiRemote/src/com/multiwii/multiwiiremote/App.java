@@ -68,7 +68,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		SENSORFILTERALPHA(0.03f),
 		//KEEPSCREENON(true),
 		PREVENTEXITWHENFLYING(true),
-		ROLLPITCHLIMIT(250)
+		ROLLPITCHLIMIT(250),
 		SSID("");
 	
 		private String value;
@@ -185,7 +185,7 @@ public class App extends Application implements Sensors.MagAccListener {
 	public void ReadSettings() {
 		LowSignalThreshold = Integer.parseInt(prefs.getString(LOWSIGNALTHRESHOLD.toString(), LOWSIGNALTHRESHOLD.DefaultS()));
 		TextToSpeach = prefs.getBoolean(TEXTTOSPEACH.toString(), TEXTTOSPEACH.DefaultB());
-		RefreshRate = Intger.parseInt(editor.getString(REFRESHRATE.toString(), REFRESHRATE.DefaultS()));
+		RefreshRate = Integer.parseInt(prefs.getString(REFRESHRATE.toString(), REFRESHRATE.DefaultS()));
 		UIDebug = prefs.getBoolean(UIDEBUG.toString(), UIDEBUG.DefaultB());
 		TrimRoll = Integer.parseInt(prefs.getString(TRIMROLL.toString(), TRIMROLL.DefaultS()));
 		TrimPitch = Integer.parseInt(prefs.getString(TRIMPITCH.toString(), TRIMPITCH.DefaultS()));
@@ -293,11 +293,11 @@ public class App extends Application implements Sensors.MagAccListener {
 		if (TextToSpeach) tts.Speak(text);
 	}
 	public void onResume() {
-		app.sensors.start();
+		this.sensors.start();
 	}
 	public void onPause() {
-		app.SaveSettings();
-		app.sensors.stop();
+		this.SaveSettings();
+		this.sensors.stop();
 	}
 	public void stop() {
 		if(protocol != null) protocol.stop();
