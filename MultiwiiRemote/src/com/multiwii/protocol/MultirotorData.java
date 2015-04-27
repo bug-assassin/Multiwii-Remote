@@ -230,6 +230,7 @@ public abstract class MultirotorData {
 		mConnectedReadThread = new ConnectedReadThread(communication);
 		mConnectedReadThread.start();*/
 		mConnectedThread = new ConnectedThread(communication);
+		
 		connection.Connected = true;
 	}
 	

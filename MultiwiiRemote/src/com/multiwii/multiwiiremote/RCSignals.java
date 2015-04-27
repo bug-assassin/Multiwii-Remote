@@ -3,7 +3,8 @@ package com.multiwii.multiwiiremote;
 import com.multiwii.Utilities.Utilities;
 
 public class RCSignals {
-		public enum AdjustMode {
+
+    public enum AdjustMode {
 		THROTTLE("T: ", (byte) 3), ROLL("R: ", (byte) 0), PITCH("P: ", (byte) 1), YAW("Y: ", (byte) 2);
 		String value;
 		byte id;
@@ -46,7 +47,7 @@ public class RCSignals {
 	public int TrimRoll = 0;
 	public int TrimPitch = 0;
 	public int RollPitchLimit = 500;
-	
+	public int ThrottleLimit = 500;
 	public int YAW_RESOLUTION = 5;
 	
 	public RCSignals() {
@@ -107,13 +108,25 @@ public class RCSignals {
 	public void setPitch(int pitch) {
 		rc_signals_raw[PITCH] = pitch;
 	}
-	
+
+    public void setThrottle(int throttle){ rc_signals_raw[THROTTLE] = throttle; }
+
+    public void setYaw(int yaw) { rc_signals_raw[YAW] = yaw; }
+
 	public void setAdjustedRoll(int roll) {
 		setRoll((int) (Utilities.map(roll, -500, 500, -RollPitchLimit, RollPitchLimit) + 1500));
 	}
 	public void setAdjustedPitch(int pitch) {
 		setPitch((int) (Utilities.map(pitch, -500, 500, -RollPitchLimit, RollPitchLimit) + 1500));
 	}
+    public void setAdjustedThrottle(int throttle) {
+        setThrottle((int) (Utilities.map(throttle, -500, 500, 0, ThrottleLimit) + 1000));//adjust throttle range....
+    }
+
+    public void setAdjustedYaw(int yaw) {
+        setYaw((int) (Utilities.map(yaw, -500, 500, -ThrottleLimit, ThrottleLimit) + 1500));
+    }
+
 	public void setMin(byte id) {
 		rc_signals_raw[id] = RC_MIN;
 	}

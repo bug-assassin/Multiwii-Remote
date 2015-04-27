@@ -41,6 +41,7 @@ public class JoystickView extends View {
 
 	private boolean yAxisInverted;
 	private boolean autoReturnToCenter;
+    private boolean autoReturnToMid;
 
 	// Max range of movement in user coordinate system
 	public final static int CONSTRAIN_BOX = 0;
@@ -65,7 +66,12 @@ public class JoystickView extends View {
 
 	// Last touch point in view coordinates
 	private int pointerId = INVALID_POINTER_ID;
-	private float touchX, touchY;
+
+    public void setTouchY(float touchY) {
+        this.touchY = touchY;
+    }
+
+    private float touchX, touchY;
 
 	// Last reported position in view coordinates (allows different reporting
 	// sensitivities)
@@ -96,6 +102,7 @@ public class JoystickView extends View {
 	private int offsetX;
 	private int offsetY;
 
+    private boolean isInit = true;
 	// =========================================
 	// Constructors
 	// =========================================
@@ -163,9 +170,20 @@ public class JoystickView extends View {
 		setYAxisInverted(true);
 		setUserCoordinateSystem(COORDINATE_CARTESIAN);
 		setAutoReturnToCenter(true);
+        setAutoReturnToMid(false);
+
+
 	}
 
-	public void setAutoReturnToCenter(boolean autoReturnToCenter) {
+    public void setAutoReturnToMid(boolean b) {
+        this.autoReturnToMid = b;
+    }
+
+    public boolean getAutoReturnToMid(){
+        return this.autoReturnToMid;
+    }
+
+    public void setAutoReturnToCenter(boolean autoReturnToCenter) {
 		this.autoReturnToCenter = autoReturnToCenter;
 	}
 
@@ -273,7 +291,8 @@ public class JoystickView extends View {
 		setMeasuredDimension(measuredWidth, measuredHeight);
 	}
 
-	@Override
+
+    @Override
 	protected void onLayout(boolean changed, int left, int top, int right,
 			int bottom) {
 		super.onLayout(changed, left, top, right, bottom);
@@ -290,6 +309,10 @@ public class JoystickView extends View {
 		handleRadius = (int) (d * 0.25);
 		handleInnerBoundaries = handleRadius;
 		movementRadius = Math.min(cX, cY) - handleInnerBoundaries;
+        if(isInit == true && autoReturnToMid == true){
+            isInit = false;
+            touchY = movementRadius;
+        }
 	}
 
 	private int measure(int measureSpec) {
@@ -384,10 +407,11 @@ public class JoystickView extends View {
 		final int action = ev.getAction();
 		switch (action & MotionEvent.ACTION_MASK) {
 		case MotionEvent.ACTION_MOVE: {
-			return processMoveEvent(ev);
+            return processMoveEvent(ev);
 		}
 		case MotionEvent.ACTION_CANCEL:
 		case MotionEvent.ACTION_UP: {
+			
 			if (pointerId != INVALID_POINTER_ID) {
 				// Log.d(TAG, "ACTION_UP");
 				returnHandleToCenter();
@@ -396,6 +420,7 @@ public class JoystickView extends View {
 			break;
 		}
 		case MotionEvent.ACTION_POINTER_UP: {
+			
 			if (pointerId != INVALID_POINTER_ID) {
 				final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 				final int pointerId = ev.getPointerId(pointerIndex);
@@ -409,17 +434,18 @@ public class JoystickView extends View {
 			break;
 		}
 		case MotionEvent.ACTION_DOWN: {
-			if (pointerId == INVALID_POINTER_ID) {
+         	if (pointerId == INVALID_POINTER_ID) {
 				int x = (int) ev.getX();
-				if (x >= offsetX && x < offsetX + dimX) {
+                if (x >= offsetX && x < offsetX + dimX ) {
 					setPointerId(ev.getPointerId(0));
-					// Log.d(TAG, "ACTION_DOWN: " + getPointerId());
-					return true;
+                    return true;
 				}
 			}
 			break;
 		}
 		case MotionEvent.ACTION_POINTER_DOWN: {
+		//	Log.d("JoyStickView", "ACTION_POINTER_MOVE");
+			
 			if (pointerId == INVALID_POINTER_ID) {
 				final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 				final int pointerId = ev.getPointerId(pointerIndex);
@@ -439,7 +465,6 @@ public class JoystickView extends View {
 	private boolean processMoveEvent(MotionEvent ev) {
 		if (pointerId != INVALID_POINTER_ID) {
 			final int pointerIndex = ev.findPointerIndex(pointerId);
-
 			// Translate touch position to center of view
 			float x = ev.getX(pointerIndex);
 			touchX = x - cX - offsetX;
@@ -542,7 +567,30 @@ public class JoystickView extends View {
 			invalidate();
 		}
 	}
+    public void returnHandleToMid(){
+        final int numberOfFrames = 5;
+        final double intervalsX = (0 - touchX) / numberOfFrames;
+        for (int i = 0; i < numberOfFrames; i++) {
+            final int j = i;
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    touchX += intervalsX;
 
+                    reportOnMoved();
+                    invalidate();
+
+                    if (moveListener != null && j == numberOfFrames - 1) {
+                        moveListener.OnReturnedToCenter();
+                    }
+                }
+            }, i * 40);
+        }
+
+        if (moveListener != null) {
+            moveListener.OnReleased();
+        }
+    }
 	public void returnHandleToCenter() {
 		if (autoReturnToCenter) {
 			final int numberOfFrames = 5;
@@ -571,10 +619,17 @@ public class JoystickView extends View {
 				moveListener.OnReleased();
 			}
 		}
+        else if(autoReturnToMid){
+            this.returnHandleToMid();
+        }
 	}
 
 	public void setTouchOffset(int x, int y) {
 		offsetX = x;
 		offsetY = y;
 	}
+
+    public float getTouchY() {
+        return this.touchY;
+    }
 }

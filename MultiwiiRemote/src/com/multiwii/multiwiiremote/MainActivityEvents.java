@@ -12,7 +12,24 @@ public class MainActivityEvents {
 	public MainActivityEvents(MainActivity mActivity) {
 		this.mActivity = mActivity;
 	}
+    public JoystickMovedListener _throttleListener = new JoystickMovedListener() {
+        @Override
+        public void OnMoved(int delta_yaw, int delta_throttle) {
+            delta_yaw = delta_yaw / 10; //reduce yaw range. -50~50 SONG BO
+            mActivity.rc.setAdjustedYaw(delta_yaw);
+            mActivity.rc.setAdjustedThrottle(-delta_throttle);
+        }
 
+        @Override
+        public void OnReleased() {
+
+        }
+
+        @Override
+        public void OnReturnedToCenter() {
+
+        }
+    };
 	public JoystickMovedListener _listener = new JoystickMovedListener() {
 		@Override
 		public void OnMoved(int pan, int tilt) {

@@ -10,7 +10,8 @@ import com.multiwii.communication.Communication;
 import com.multiwii.multiwiiremote.App;
 
 public class MultiWii230 extends MultirotorData {
-
+	
+	private long requestStartTime;
 	public MultiWii230(Communication bt) {
 		super(bt);
 		EZGUIProtocol = "2.3";
@@ -320,23 +321,15 @@ public void Request(int[] codes) {
 				}
 			}
 			break;
-		/*
-		 * case MSP_WP: Waypoint WP = new Waypoint(); WP.Number = read8();
-		 * WP.Lat = read32(); WP.Lon = read32(); WP.Altitude = read32();
-		 * WP.Heading = read16(); WP.TimeToStay = read16(); WP.NavFlag =
-		 * read8();
-		 * 
-		 * Waypoints[WP.Number] = WP;
-		 * 
-		 * Log.d("aaa", "MSP_WP (get) " + String.valueOf(WP.Number) + "  " +
-		 * String.valueOf(WP.Lat) + "x" + String.valueOf(WP.Lon) + " " +
-		 * String.valueOf(WP.Altitude) + " " + String.valueOf(WP.NavFlag));
-		 * break;
-		 */
+			
+		case MSP_SET_RAW_RC://ACK BY SET RAW RC
+			long timeElapse = System.currentTimeMillis() - this.requestStartTime;
+			Log.d("Delay", "SET_RAW_RC: " + timeElapse + "ms");
+			break;
+			
 		default:
 			Log.e("aaa",
 					"Error command - unknown replay " + String.valueOf(icmd));
-
 		}
 	}
 
@@ -367,7 +360,8 @@ public void Request(int[] codes) {
 		DataFlow--;
 
 		while (communication.dataAvailable()) {
-
+			//It's a finite state machine .. MY GOD!!
+			//SONG BO
 			try {
 				c = (communication.Read());
 				Log.v("READ", "Data: " + c);
@@ -419,7 +413,9 @@ public void Request(int[] codes) {
 								"Copter did not understand request type " + c);
 					} else {
 						/* we got a valid response packet, evaluate it */
+						//SONG BO HERE WE RECEIVED ENOUGH DATA-----------------------
 						evaluateCommand(cmd, (int) dataSize);
+						//SONG BO ---------------------------------------
 						DataFlow = DATA_FLOW_TIME_OUT;
 					}
 				} else {
@@ -652,6 +648,9 @@ public void Request(int[] codes) {
 			rcData += String.valueOf(i) + " ";
 		}
 		Log.d("rc data:", rcData);
+		
+		this.requestStartTime = System.currentTimeMillis();
+		
 		sendRequestMSP(requestMSP(MSP_SET_RAW_RC, rc_signals_array));
 
 		// TODO

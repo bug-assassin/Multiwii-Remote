@@ -58,14 +58,14 @@
         android:text="@string/connectionStatus"
         android:textAppearance="?android:attr/textAppearanceLarge" />
     
-    <view.joystick.JoystickView
+        <view.joystick.JoystickView
         android:id="@+id/joystickView"
-        android:layout_width="300dip"
-        android:layout_height="match_parent"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/aux2Btn"
-        android:layout_toRightOf="@+id/throttleView" />
+            android:visibility="visible"
+            android:layout_alignParentLeft="false" />
 
     <ToggleButton
         android:id="@+id/aux4Btn"
@@ -127,5 +127,19 @@
         android:layout_toLeftOf="@+id/switchModes"
         android:text="@string/phone_heading" />
 
-</RelativeLayout>
+            <view
+                android:layout_width="600dip"
+                android:layout_height="match_parent"
+                class="view.joystick.DualJoystickView"
+                android:id="@+id/DualJoystickView"
+                android:layout_alignRight="@+id/joystickView"
+                android:layout_alignParentTop="false"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="false"
+                android:layout_toRightOf="@+id/aux1Btn"
+                android:layout_below="@+id/aux2Btn"
+                android:visibility="visible" />
+
+        </RelativeLayout>
 </RelativeLayout>

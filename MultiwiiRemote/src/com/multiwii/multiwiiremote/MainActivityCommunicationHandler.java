@@ -50,4 +50,5 @@ public class MainActivityCommunicationHandler extends Handler {
 				break;
 			}
 		}
+		
 	};

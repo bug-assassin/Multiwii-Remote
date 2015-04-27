@@ -1,12 +1,14 @@
 package com.multiwii.multiwiiremote;
 
 
+import view.joystick.DualJoystickView;
 import view.joystick.JoystickView;
 import com.multiwii.Utilities.Utilities;
 import com.multiwii.communication.DeviceListActivity;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,7 +25,7 @@ public class MainActivity extends BaseActivity {
 
 	private InputMode inputMode = InputMode.TOUCH;
 	private JoystickView joystick;
-
+    private DualJoystickView dualJoystickView;
 	private ToggleButton auxBtn[] = new ToggleButton[4];
 	private TextView txtHeader;
 	private TextView txtStatus;
@@ -58,7 +60,8 @@ public class MainActivity extends BaseActivity {
 		for (int x = 0; x < auxBtn.length; x++)
 			auxBtn[x] = (ToggleButton) findViewById(getResources().getIdentifier("aux" + (x + 1) + "Btn", "id",	getPackageName()));
 		joystick = (JoystickView) findViewById(R.id.joystickView);
-		chkUsePhoneHeading = (CheckBox) findViewById(R.id.chkUsePhoneHeading);
+        dualJoystickView = (DualJoystickView) findViewById(R.id.DualJoystickView);
+        chkUsePhoneHeading = (CheckBox) findViewById(R.id.chkUsePhoneHeading);
 		
 		Init();
 	}
@@ -68,7 +71,11 @@ public class MainActivity extends BaseActivity {
 
 		chkUsePhoneHeading.setOnCheckedChangeListener(mEvents.mCheckChangeListener);
 		((Button) findViewById(R.id.switchModes)).setOnClickListener(mEvents.mClickListener);
-		joystick.setOnJostickMovedListener(mEvents._listener);
+		//joystick.setOnJostickMovedListener(mEvents._listener);
+        dualJoystickView.stickR.setOnJostickMovedListener(mEvents._listener);
+        dualJoystickView.stickL.setOnJostickMovedListener(mEvents._throttleListener);
+        dualJoystickView.stickL.setAutoReturnToCenter(false);
+        dualJoystickView.stickL.setAutoReturnToMid(true);
 		for (int x = 0; x < auxBtn.length; x++)
 			auxBtn[x].setOnClickListener(mEvents.mClickListener);
 		auxBtn[0].setEnabled(false);
@@ -81,6 +88,9 @@ public class MainActivity extends BaseActivity {
 		if(app.commMW.Connected) {
 		//Create payload TODO
 			app.protocol.SendRequestMSP_SET_RAW_RC(rc.get()); //TODO Check that delay isnt too big from other tasks
+			//SONG BO ADD BEGIN---------------------------------
+			app.protocol.ProcessSerialData(false);
+			//SONG BO ADD END
 		}
 		app.FrequentTasks();
 	}
