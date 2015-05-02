@@ -1,5 +1,6 @@
 package com.multiwii.multiwiiremote;
 
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.CompoundButton;
@@ -71,9 +72,14 @@ public class MainActivityEvents {
 	};
 	public OnCheckedChangeListener mCheckChangeListener = new OnCheckedChangeListener() {
 		@Override
-		public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+		public void onCheckedChanged(CompoundButton arg0, boolean state) {
 			// TODO Auto-generated method stub
-			//mActivity.usePhoneHeading = chkUsePhoneHeading.isChecked();
+            if(state == true){
+                mActivity.app.sensors.start();
+            }
+            else{
+                mActivity.app.sensors.stop();
+            }
 		}
 	};
 

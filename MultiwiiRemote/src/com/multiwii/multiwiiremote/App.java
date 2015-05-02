@@ -43,13 +43,24 @@ public class App extends Application implements Sensors.MagAccListener {
 	public boolean TextToSpeach;
 	public CommunicationMode comMode;
 	public String ssid;
-	
+
+
+
+    private MainActivity mainActivity;
 	public String Aux1Txt;
 	public String Aux2Txt;
 	public String Aux3Txt;
 	public String Aux4Txt;
-	
-	public enum SettingsConstants {
+
+    public void setMainActivity(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    public MainActivity getMainActivity() {
+        return mainActivity;
+    }
+
+    public enum SettingsConstants {
 		LOWSIGNALTHRESHOLD(30),
 		TEXTTOSPEACH(true),
 		UIDEBUG(false), 
@@ -162,9 +173,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefsEditor = prefs.edit();
 		
-		sensors = new Sensors(getApplicationContext());
-		sensors.registerListener(this);
-		
+		sensors = new Sensors(getApplicationContext(), this);
 		Init();
 		
 		tts = new TTS(getApplicationContext());
@@ -243,7 +252,6 @@ public class App extends Application implements Sensors.MagAccListener {
 	}
 	public void FrequentTasks() {
 		if(commMW.Connected) {
-		
 			if(signalStrengthTimer.isTime()) {
 				signalStrengthTimer.reset();
 				int signalStrength = commMW.getStrength();
@@ -251,7 +259,7 @@ public class App extends Application implements Sensors.MagAccListener {
 					Say("Low Signal " + signalStrength);
 				}
 			}
-			
+
 		}
 		//TODO check low phone battery
 	}
@@ -293,7 +301,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		if (TextToSpeach) tts.Speak(text);
 	}
 	public void onResume() {
-		this.sensors.start();
+		ReadSettings();this.sensors.start();
 	}
 	public void onPause() {
 		this.SaveSettings();

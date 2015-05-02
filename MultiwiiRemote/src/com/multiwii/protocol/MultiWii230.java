@@ -10,9 +10,8 @@ import com.multiwii.communication.Communication;
 import com.multiwii.multiwiiremote.App;
 
 public class MultiWii230 extends MultirotorData {
-	
-	private long requestStartTime;
-	public MultiWii230(Communication bt) {
+
+    public MultiWii230(Communication bt) {
 		super(bt);
 		EZGUIProtocol = "2.3";
 
@@ -104,7 +103,7 @@ public void Request(int[] codes) {
 	}
 
 	public void evaluateCommand(byte cmd, int dataSize) {
-
+        long timeElapse;
 		int i;
 		int icmd = (int) (cmd & 0xFF);
 		switch (icmd) {
@@ -222,6 +221,9 @@ public void Request(int[] codes) {
 			angx = read16() / 10;
 			angy = read16() / 10;
 			head = read16();
+            setIs_ATTITUDE_received(true);
+            attitudeReceivedTime = System.currentTimeMillis();
+            Log.d("aaa", "MSP_ATTITUDE: angx = " + angx + ",angy = " + angy + ",head = " + head);
 			break;
 		case MSP_ALTITUDE:
 			alt = ((float) read32() / 100) - AltCorrection;
@@ -323,10 +325,11 @@ public void Request(int[] codes) {
 			break;
 			
 		case MSP_SET_RAW_RC://ACK BY SET RAW RC
-			long timeElapse = System.currentTimeMillis() - this.requestStartTime;
-			Log.d("Delay", "SET_RAW_RC: " + timeElapse + "ms");
+			is_SET_RAW_RC_received = true;
 			break;
-			
+        case MSP_SET_HEAD://ACK BY SET HEADING
+           is_SET_HEAD_received = true;
+            break;
 		default:
 			Log.e("aaa",
 					"Error command - unknown replay " + String.valueOf(icmd));
@@ -435,7 +438,6 @@ public void Request(int[] codes) {
 				}
 				c_state = IDLE;
 			}
-
 		}
 	}
 
@@ -605,6 +607,10 @@ public void Request(int[] codes) {
 		sendRequestMSP(requestMSP(MSP_MISC));
 
 	}
+    @Override
+    public void SendRequestMSP_ATTITUDE(){
+        sendRequestMSP(requestMSP(MSP_ATTITUDE));
+    }
 
 	@Override
 	public void SendRequestMSP_SET_RAW_GPS(byte GPS_FIX, byte numSat,
@@ -647,20 +653,8 @@ public void Request(int[] codes) {
 		for (int i : channels8){
 			rcData += String.valueOf(i) + " ";
 		}
-		Log.d("rc data:", rcData);
-		
-		this.requestStartTime = System.currentTimeMillis();
-		
 		sendRequestMSP(requestMSP(MSP_SET_RAW_RC, rc_signals_array));
 
-		// TODO
-		// sendRequestMSP(requestMSP(new int[] { MSP_RC }));
-
-		// Log.d("aaa", "RC:" + String.valueOf(rcRoll) + " " +
-		// String.valueOf(rcPitch) + " " + String.valueOf(rcYaw) + " " +
-		// String.valueOf(rcThrottle) + " " + String.valueOf(rcAUX1) + " " +
-		// String.valueOf(rcAUX2) + " " + String.valueOf(rcAUX3) + " " +
-		// String.valueOf(rcAUX4));
 
 	}
 

@@ -2,20 +2,21 @@ package com.multiwii.multiwiiremote;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.WindowManager;
 
 
 
 public abstract class BaseActivity extends Activity {
-	
+	private long lastRefreshTime = 0;
 	protected App app;
 	protected Menu menu;
 	protected UpdateThread mUpdateThread;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+		lastRefreshTime = System.currentTimeMillis();
 		app = (App) getApplication();
 	}
 	protected void StartUpdateThread() {
@@ -81,7 +82,16 @@ public abstract class BaseActivity extends Activity {
 				if(cancel) break;
 				
 				try {
-					Thread.sleep(app.RefreshRate);
+                    long currentTime = System.currentTimeMillis();
+                    long elapseTime = currentTime - lastRefreshTime;
+                    if(elapseTime < app.RefreshRate){
+                        Thread.sleep(app.RefreshRate - elapseTime);
+                    }
+                    else{
+                        Log.d("WARNING", "too much works in main tread! cost " + elapseTime + "ms per loop.");
+                    }
+                    lastRefreshTime = System.currentTimeMillis();
+
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -19,19 +19,38 @@ import android.widget.ToggleButton;
 import static com.multiwii.multiwiiremote.RCSignals.*;
 
 public class MainActivity extends BaseActivity {
-	private enum InputMode {
+    private long requestStartTime;
+    private boolean isReceived = true;
+    private long lastRequestTime = 0;
+
+    private enum InputMode {
 		ACCELEROMETER, TOUCH
 	}
 
 	private InputMode inputMode = InputMode.TOUCH;
-	private JoystickView joystick;
     private DualJoystickView dualJoystickView;
 	private ToggleButton auxBtn[] = new ToggleButton[4];
 	private TextView txtHeader;
 	private TextView txtStatus;
 	private TextView txtUIDebug;
-	private CheckBox chkUsePhoneHeading;
+    private long lastHeadingRefreshTime = 0;
+    private int thisHeading = 0;
+    private int mwcHeading = 0;
+    private int lastValidateHeading =0;
+    private String debugTextTemplate = "%sPhone Heading: %d\nMWC Heading:%d\nDelay: %dms";
+    private long delayTime = 0;
+    private long [] delayTimeRaw = new long[5];
+    private boolean isDelayTimeAvailable = false;
+    private int delayTimeIdx = 0;
+    public CheckBox getChkUsePhoneHeading() {
+        return chkUsePhoneHeading;
+    }
 
+    public void setChkUsePhoneHeading(CheckBox chkUsePhoneHeading) {
+        this.chkUsePhoneHeading = chkUsePhoneHeading;
+    }
+
+    private CheckBox chkUsePhoneHeading;
 	public RCSignals rc;
 	// private byte timer = 0;
 	// private Camera mCam;
@@ -59,7 +78,6 @@ public class MainActivity extends BaseActivity {
 		txtUIDebug = (TextView) findViewById(R.id.debugTxt);
 		for (int x = 0; x < auxBtn.length; x++)
 			auxBtn[x] = (ToggleButton) findViewById(getResources().getIdentifier("aux" + (x + 1) + "Btn", "id",	getPackageName()));
-		joystick = (JoystickView) findViewById(R.id.joystickView);
         dualJoystickView = (DualJoystickView) findViewById(R.id.DualJoystickView);
         chkUsePhoneHeading = (CheckBox) findViewById(R.id.chkUsePhoneHeading);
 		
@@ -68,8 +86,9 @@ public class MainActivity extends BaseActivity {
 
 	private void Init() {
 		app.SetHandler(mHandler); //App class will automatically bind to commMW
-
+        app.setMainActivity(this);
 		chkUsePhoneHeading.setOnCheckedChangeListener(mEvents.mCheckChangeListener);
+
 		((Button) findViewById(R.id.switchModes)).setOnClickListener(mEvents.mClickListener);
 		//joystick.setOnJostickMovedListener(mEvents._listener);
         dualJoystickView.stickR.setOnJostickMovedListener(mEvents._listener);
@@ -78,19 +97,60 @@ public class MainActivity extends BaseActivity {
         dualJoystickView.stickL.setAutoReturnToMid(true);
 		for (int x = 0; x < auxBtn.length; x++)
 			auxBtn[x].setOnClickListener(mEvents.mClickListener);
-		auxBtn[0].setEnabled(false);
-		
 		settingsModified();
 	}
 	
 	public void FrequentTasks() {
 		mHandler.sendEmptyMessage(7);
+        //send RC signal
 		if(app.commMW.Connected) {
 		//Create payload TODO
-			app.protocol.SendRequestMSP_SET_RAW_RC(rc.get()); //TODO Check that delay isnt too big from other tasks
-			//SONG BO ADD BEGIN---------------------------------
-			app.protocol.ProcessSerialData(false);
-			//SONG BO ADD END
+            //new cycle begin if an ATTITUDE ACK is received or 300ms passed(package lost)
+            long currentTime = System.currentTimeMillis();
+            if(app.protocol.isIs_ATTITUDE_received() == true){
+                    app.protocol.setIs_ATTITUDE_received(false);
+                    delayTimeRaw[delayTimeIdx++] = app.protocol.attitudeReceivedTime - lastRequestTime;
+                    if(delayTimeIdx == delayTimeRaw.length){
+                        delayTimeIdx = 0;
+                        isDelayTimeAvailable = true;
+                    }
+                    if(isDelayTimeAvailable == true){
+                        long sum = 0;
+                        for(long i : delayTimeRaw){
+                            sum += i;
+                        }
+                        delayTime = sum / delayTimeRaw.length;
+                    }
+                lastRequestTime = currentTime;
+                app.protocol.SendRequestMSP_ATTITUDE();
+                mwcHeading = app.protocol.head;
+                }
+            //we consider it as a package lost, resend package
+            else if(currentTime - lastRequestTime > 300){
+                app.protocol.SendRequestMSP_ATTITUDE();
+            }
+            app.protocol.SendRequestMSP_SET_RAW_RC(rc.get()); //TODO Check that delay isnt too big from other tasks
+            if (chkUsePhoneHeading.isChecked()){
+                    //refresh heading in every 500 mili seconds
+                    if( currentTime - lastHeadingRefreshTime > 500 ){
+                        thisHeading = app.sensors.heading;
+                        app.protocol.SendRequestMSP_SET_HEAD(thisHeading);
+                        lastHeadingRefreshTime = currentTime;
+                    }
+                }
+            //SONG BO ADD BEGIN---------------------------------
+
+            //data transmitted from MWC to Phone is processed in ProcessSerialData() in ConnectedThread
+//            while(!app.protocol.is_SET_RAW_RC_received ){
+//                app.protocol.ProcessSerialData(false);
+//                if (app.protocol.is_SET_HEAD_received){
+//                    lastValidateHeading = thisHeading;
+//                    app.protocol.is_SET_HEAD_received = false;
+//                }
+//                delayTime = System.currentTimeMillis() - requestStartTime;
+//            }
+//            app.protocol.is_SET_RAW_RC_received = false;
+            //SONG BO ADD END
 		}
 		app.FrequentTasks();
 	}
@@ -148,28 +208,29 @@ public class MainActivity extends BaseActivity {
 	}
 	public void UpdateUI() {
 		txtHeader.setText(rc.adjustMode.getValue() + rc.get(rc.adjustMode.getId()));
-		txtUIDebug.setText(app.UIDebug ? rc.toStringNoThrottle() + "Heading: " + app.sensors.Heading : "");
+		txtUIDebug.setText(app.UIDebug ? String.format(debugTextTemplate, rc.toStringNoThrottle(), app.sensors.heading, mwcHeading, delayTime)  : "");
 		txtStatus.setText(app.Status);
 	}
 	
 	// int requests[] = new int[] { MultirotorData.MSP_DEBUG,
 	// MultirotorData.MSP_ALTITUDE, MultirotorData.MSP_RC };
-	public void onSensorsStateChangeMagAcc() {
+	public void onSensorsStateChangeRotate() {
 		if (inputMode == InputMode.ACCELEROMETER) {
-			float xCoordinate = (float) Utilities.mapCons(-app.sensors.Pitch,
-					app.sensors.getAccelMinValue(),
-					app.sensors.getAccelMaxValue(),
-					-joystick.getMovementRange(), joystick.getMovementRange());
-			float yCoordinate = (float) Utilities.mapCons(-app.sensors.Roll,
-					app.sensors.getAccelMinValue(),
-					app.sensors.getAccelMaxValue(),
-					-joystick.getMovementRange(), joystick.getMovementRange());
-			joystick.setCoordinates(xCoordinate, yCoordinate);
+			float xCoordinate = (float) Utilities.mapCons(-app.sensors.pitch,
+					app.sensors.getMinValue(),
+					app.sensors.getMaxValue(),
+					-dualJoystickView.stickR.getMovementRange()/2, dualJoystickView.stickR.getMovementRange()/2);
+			float yCoordinate = (float) Utilities.mapCons(-app.sensors.roll,
+					app.sensors.getMinValue(),
+					app.sensors.getMaxValue(),
+					-dualJoystickView.stickR.getMovementRange()/2, dualJoystickView.stickR.getMovementRange()/2);
+          dualJoystickView.stickR.setCoordinates(xCoordinate, yCoordinate);
 		}
 	}
 
 	public void aux1_Click(View v) {
 		// Replaced with When Throttle >= 1030
+        rc.set(AUX1, ((ToggleButton) v).isChecked());
 	}
 
 	public void aux2_Click(View v) {
@@ -197,7 +258,7 @@ public class MainActivity extends BaseActivity {
 			Connect();
 			break;
 		case R.id.accelOn:
-			if (!app.sensors.isAccelSupported())
+			if (!app.sensors.isRotateSensorSupported())
 				Utilities.showToast("Sorry, your device does not have an accelerometer", this);
 			else {
 				switch (inputMode) {
@@ -206,7 +267,7 @@ public class MainActivity extends BaseActivity {
 					break;
 					case ACCELEROMETER:
 						inputMode = InputMode.TOUCH;
-						joystick.returnHandleToCenter();
+						dualJoystickView.stickR.returnHandleToCenter();
 					break;
 				}
 			}

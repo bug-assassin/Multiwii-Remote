@@ -9,6 +9,7 @@ import com.multiwii.communication.CommunicationMode;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 public class MainActivityCommunicationHandler extends Handler {
 	    private final WeakReference<MainActivity> mActivity;
@@ -40,7 +41,7 @@ public class MainActivityCommunicationHandler extends Handler {
 				}
 				break;
 			case App.SENSORSCHANGED:
-				myNewActivity.onSensorsStateChangeMagAcc();
+				myNewActivity.onSensorsStateChangeRotate();
 				break;
 			case Communication.MESSAGE_TOAST:
 				Utilities.showToast(msg.getData().getString(Communication.TOAST), myNewActivity);
