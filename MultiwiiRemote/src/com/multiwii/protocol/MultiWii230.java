@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.multiwii.communication.Communication;
-
 import android.util.Log;
+
+import com.multiwii.communication.Communication;
+import com.multiwii.multiwiiremote.App;
 
 public class MultiWii230 extends MultirotorData {
 
-	public MultiWii230(Communication bt) {
+    public MultiWii230(Communication bt) {
 		super(bt);
 		EZGUIProtocol = "2.3";
 
@@ -25,7 +26,9 @@ public class MultiWii230 extends MultirotorData {
 		buttonCheckboxLabel = new String[0];
 		init();
 	}
-
+	public void setApp(App app){
+		this.app = app;
+	}
 	private void init() {
 		CHECKBOXITEMS = buttonCheckboxLabel.length;
 		activation = new int[CHECKBOXITEMS];
@@ -100,7 +103,7 @@ public void Request(int[] codes) {
 	}
 
 	public void evaluateCommand(byte cmd, int dataSize) {
-
+        long timeElapse;
 		int i;
 		int icmd = (int) (cmd & 0xFF);
 		switch (icmd) {
@@ -218,6 +221,9 @@ public void Request(int[] codes) {
 			angx = read16() / 10;
 			angy = read16() / 10;
 			head = read16();
+            setIs_ATTITUDE_received(true);
+            attitudeReceivedTime = System.currentTimeMillis();
+            Log.d("aaa", "MSP_ATTITUDE: angx = " + angx + ",angy = " + angy + ",head = " + head);
 			break;
 		case MSP_ALTITUDE:
 			alt = ((float) read32() / 100) - AltCorrection;
@@ -317,23 +323,16 @@ public void Request(int[] codes) {
 				}
 			}
 			break;
-		/*
-		 * case MSP_WP: Waypoint WP = new Waypoint(); WP.Number = read8();
-		 * WP.Lat = read32(); WP.Lon = read32(); WP.Altitude = read32();
-		 * WP.Heading = read16(); WP.TimeToStay = read16(); WP.NavFlag =
-		 * read8();
-		 * 
-		 * Waypoints[WP.Number] = WP;
-		 * 
-		 * Log.d("aaa", "MSP_WP (get) " + String.valueOf(WP.Number) + "  " +
-		 * String.valueOf(WP.Lat) + "x" + String.valueOf(WP.Lon) + " " +
-		 * String.valueOf(WP.Altitude) + " " + String.valueOf(WP.NavFlag));
-		 * break;
-		 */
+			
+		case MSP_SET_RAW_RC://ACK BY SET RAW RC
+			is_SET_RAW_RC_received = true;
+			break;
+        case MSP_SET_HEAD://ACK BY SET HEADING
+           is_SET_HEAD_received = true;
+            break;
 		default:
 			Log.e("aaa",
 					"Error command - unknown replay " + String.valueOf(icmd));
-
 		}
 	}
 
@@ -364,7 +363,8 @@ public void Request(int[] codes) {
 		DataFlow--;
 
 		while (communication.dataAvailable()) {
-
+			//It's a finite state machine .. MY GOD!!
+			//SONG BO
 			try {
 				c = (communication.Read());
 				Log.v("READ", "Data: " + c);
@@ -416,7 +416,9 @@ public void Request(int[] codes) {
 								"Copter did not understand request type " + c);
 					} else {
 						/* we got a valid response packet, evaluate it */
+						//SONG BO HERE WE RECEIVED ENOUGH DATA-----------------------
 						evaluateCommand(cmd, (int) dataSize);
+						//SONG BO ---------------------------------------
 						DataFlow = DATA_FLOW_TIME_OUT;
 					}
 				} else {
@@ -436,7 +438,6 @@ public void Request(int[] codes) {
 				}
 				c_state = IDLE;
 			}
-
 		}
 	}
 
@@ -606,6 +607,10 @@ public void Request(int[] codes) {
 		sendRequestMSP(requestMSP(MSP_MISC));
 
 	}
+    @Override
+    public void SendRequestMSP_ATTITUDE(){
+        sendRequestMSP(requestMSP(MSP_ATTITUDE));
+    }
 
 	@Override
 	public void SendRequestMSP_SET_RAW_GPS(byte GPS_FIX, byte numSat,
@@ -644,17 +649,12 @@ public void Request(int[] codes) {
 			rc_signals_array[index++] = (char) (channels8[i] & 0xFF);
 			rc_signals_array[index++] = (char) ((channels8[i] >> 8) & 0xFF);
 		}
-
+		String rcData = "";
+		for (int i : channels8){
+			rcData += String.valueOf(i) + " ";
+		}
 		sendRequestMSP(requestMSP(MSP_SET_RAW_RC, rc_signals_array));
 
-		// TODO
-		// sendRequestMSP(requestMSP(new int[] { MSP_RC }));
-
-		// Log.d("aaa", "RC:" + String.valueOf(rcRoll) + " " +
-		// String.valueOf(rcPitch) + " " + String.valueOf(rcYaw) + " " +
-		// String.valueOf(rcThrottle) + " " + String.valueOf(rcAUX1) + " " +
-		// String.valueOf(rcAUX2) + " " + String.valueOf(rcAUX3) + " " +
-		// String.valueOf(rcAUX4));
 
 	}
 

@@ -6,12 +6,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import com.multiwii.communication.Communication;
-
 import android.os.Environment;
 import android.util.Log;
 
+import com.multiwii.communication.Communication;
+import com.multiwii.communication.Wifi;
+import com.multiwii.multiwiiremote.App;
+
 public abstract class MultirotorData {
+    public boolean is_SET_RAW_RC_received = false;
+    public boolean is_SET_HEAD_received = false;
 
 	/******************************* Multiwii Serial Protocol **********************/
 	final String MSP_HEADER = "$M<";
@@ -121,10 +125,11 @@ public abstract class MultirotorData {
 	public int byteP[] = new int[PIDITEMS], byteI[] = new int[PIDITEMS], byteD[] = new int[PIDITEMS];
 
 	public int version, versionMisMatch;
-	public float gx, gy, gz, ax, ay, az, magx, magy, magz, head, angx, angy, debug1, debug2, debug3, debug4;
-	public float alt;
+	public float gx, gy, gz, ax, ay, az, magx, magy, magz, debug1, debug2, debug3, debug4;
+	public int head, angx, angy;
+    public float alt;
 	public int vario;
-
+    public long attitudeReceivedTime = 0;
 	public int GPS_distanceToHome, GPS_directionToHome;
 	public int GPS_numSat, GPS_fix, GPS_update;
 	public int GPS_altitude, GPS_speed, GPS_latitude, GPS_longitude, GPS_ground_course;
@@ -194,10 +199,20 @@ public abstract class MultirotorData {
 	private ConnectedThread mConnectedThread;
 	/*private ConnectedWriteThread mConnectedWriteThread;
 	private ConnectedReadThread mConnectedReadThread;*/
-	
-	
-	
-	public MultirotorData(Communication communication) {
+	protected App app;
+
+    public boolean isIs_ATTITUDE_received() {
+        return is_ATTITUDE_received;
+    }
+
+    synchronized public void setIs_ATTITUDE_received(boolean is_ATTITUDE_received) {
+        this.is_ATTITUDE_received = is_ATTITUDE_received;
+    }
+
+    private boolean is_ATTITUDE_received = false;
+
+
+    public MultirotorData(Communication communication) {
 		this.communication = communication;
 	}
 	
@@ -207,7 +222,6 @@ public abstract class MultirotorData {
 		mConnectThread = new ConnectThread(communication, address, speed, startDelay);
 		mConnectThread.start();
 	}
-<<<<<<< HEAD
 	public void Connect(String address, int speed, int startDelay, String ssid) {
 		stopThreads();
 
@@ -215,10 +229,7 @@ public abstract class MultirotorData {
 		mConnectThread.start();
 	}
 	
-	private void connected(int startDelay) {
-=======
-		private void connected(int startDelay) {
->>>>>>> origin/master
+		private void connected(Communication connection, int startDelay) {
 		stopThreads(); // Cancel All Previous Threads
 		if(startDelay > 1)
 			try {
@@ -226,13 +237,12 @@ public abstract class MultirotorData {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
-		/*mConnectedWriteThread = new ConnectedWriteThread(communication);
-		mConnectedWriteThread.start();
-		mConnectedReadThread = new ConnectedReadThread(communication);
-		mConnectedReadThread.start();*/
+
 		mConnectedThread = new ConnectedThread(communication);
-	}
+		//DO NOT START READING DATA SO FAR --- song bo
+		connection.Connected = true;
+        mConnectedThread.start();
+        }
 	
 	public void write(List<Byte> payload) {
 		 byte[] arr = new byte[payload.size()];
@@ -282,7 +292,9 @@ public abstract class MultirotorData {
 
 	}
 
-	private class ConnectThread extends Thread {
+
+
+    private class ConnectThread extends Thread {
 		private final Communication connection;
 		private final String address;
 		private final int speed;
@@ -309,14 +321,17 @@ public abstract class MultirotorData {
 			setName("ConnectThread");
 
 			if (stop) return;
+//			Connect to SSID automatically
+//			if(connection instanceof Wifi && app.ssid.length() > 0) {
+//				Wifi mWifi = (Wifi) connection;
+//				if(mWifi.Connect(address, speed)) return;
+//				
+//			}
 			
-			if(connection instanceof Wifi && app.ssid.length > 0) {
-				Wifi mWifi = (Wifi) connection;
-				if(!mWifi.connectToNetwork(app.ssid)) return;
+			
+			if (connection.Connect(address, speed)){
+				connection.Connected = false;
 			}
-			
-			
-			connection.Connect(address, speed);
 			if (stop)
 				connection.Close();
 
@@ -327,7 +342,8 @@ public abstract class MultirotorData {
 			if (stop)
 				return;
 			// Start the connected thread
-			connected(startDelay);
+			Log.d("connected", "begin delay!!!");
+			connected(connection, startDelay);
 		}
 
 		public void cancel() {
@@ -346,9 +362,10 @@ public abstract class MultirotorData {
 
 		public void run() {
 			//Log.i(TAG, "BEGIN mConnectedReadThread");
-
+            //reading data thread
 			while (connection.Connected) {
-				ProcessSerialData(true);
+                Log.d("ConnectedThead", "reading data");
+				ProcessSerialData(false);
 			}
 		}
 		public void write(byte[] buffer) {
@@ -422,6 +439,7 @@ public abstract class MultirotorData {
 
 	public abstract void SendRequestMSP_NAV_CONFIG();
 
+    public abstract void SendRequestMSP_ATTITUDE();
 	/********************************* FUNCTIONS END **************************************/
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault());

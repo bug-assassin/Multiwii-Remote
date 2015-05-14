@@ -43,13 +43,24 @@ public class App extends Application implements Sensors.MagAccListener {
 	public boolean TextToSpeach;
 	public CommunicationMode comMode;
 	public String ssid;
-	
+
+
+
+    private MainActivity mainActivity;
 	public String Aux1Txt;
 	public String Aux2Txt;
 	public String Aux3Txt;
 	public String Aux4Txt;
-	
-	public enum SettingsConstants {
+
+    public void setMainActivity(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    public MainActivity getMainActivity() {
+        return mainActivity;
+    }
+
+    public enum SettingsConstants {
 		LOWSIGNALTHRESHOLD(30),
 		TEXTTOSPEACH(true),
 		UIDEBUG(false), 
@@ -68,7 +79,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		SENSORFILTERALPHA(0.03f),
 		//KEEPSCREENON(true),
 		PREVENTEXITWHENFLYING(true),
-		ROLLPITCHLIMIT(250)
+		ROLLPITCHLIMIT(250),
 		SSID("");
 	
 		private String value;
@@ -162,9 +173,7 @@ public class App extends Application implements Sensors.MagAccListener {
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefsEditor = prefs.edit();
 		
-		sensors = new Sensors(getApplicationContext());
-		sensors.registerListener(this);
-		
+		sensors = new Sensors(getApplicationContext(), this);
 		Init();
 		
 		tts = new TTS(getApplicationContext());
@@ -185,7 +194,7 @@ public class App extends Application implements Sensors.MagAccListener {
 	public void ReadSettings() {
 		LowSignalThreshold = Integer.parseInt(prefs.getString(LOWSIGNALTHRESHOLD.toString(), LOWSIGNALTHRESHOLD.DefaultS()));
 		TextToSpeach = prefs.getBoolean(TEXTTOSPEACH.toString(), TEXTTOSPEACH.DefaultB());
-		RefreshRate = Intger.parseInt(editor.getString(REFRESHRATE.toString(), REFRESHRATE.DefaultS()));
+		RefreshRate = Integer.parseInt(prefs.getString(REFRESHRATE.toString(), REFRESHRATE.DefaultS()));
 		UIDebug = prefs.getBoolean(UIDEBUG.toString(), UIDEBUG.DefaultB());
 		TrimRoll = Integer.parseInt(prefs.getString(TRIMROLL.toString(), TRIMROLL.DefaultS()));
 		TrimPitch = Integer.parseInt(prefs.getString(TRIMPITCH.toString(), TRIMPITCH.DefaultS()));
@@ -243,7 +252,6 @@ public class App extends Application implements Sensors.MagAccListener {
 	}
 	public void FrequentTasks() {
 		if(commMW.Connected) {
-		
 			if(signalStrengthTimer.isTime()) {
 				signalStrengthTimer.reset();
 				int signalStrength = commMW.getStrength();
@@ -251,7 +259,7 @@ public class App extends Application implements Sensors.MagAccListener {
 					Say("Low Signal " + signalStrength);
 				}
 			}
-			
+
 		}
 		//TODO check low phone battery
 	}
@@ -293,11 +301,11 @@ public class App extends Application implements Sensors.MagAccListener {
 		if (TextToSpeach) tts.Speak(text);
 	}
 	public void onResume() {
-		app.sensors.start();
+		ReadSettings();this.sensors.start();
 	}
 	public void onPause() {
-		app.SaveSettings();
-		app.sensors.stop();
+		this.SaveSettings();
+		this.sensors.stop();
 	}
 	public void stop() {
 		if(protocol != null) protocol.stop();

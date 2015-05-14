@@ -39,9 +39,12 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
-public class Sensors implements SensorEventListener, LocationListener {
+import com.multiwii.multiwiiremote.App;
 
-	private MagAccListener mMagAccListener = null;
+public class Sensors implements LocationListener {
+
+    private final App app;
+    private MagAccListener mMagAccListener = null;
 	private GPSListener mGPSListener = null;
 
 	Location location, oldLocation;
@@ -67,26 +70,37 @@ public class Sensors implements SensorEventListener, LocationListener {
 	//public LatLng MapCurrentPosition = new LatLng(0, 0);
 
 	SensorManager m_sensorManager;
-	float[] m_lastMagFields = new float[3];;
-	float[] m_lastAccels = new float[3];;
-	private float[] m_rotationMatrix = new float[16];
-	private float[] m_orientation = new float[4];
+	Sensor rotateSensor;
+	private float[] m_rotationMatrix = new float[9];
+	private float[] m_orientation = new float[3];
 
-	public float Pitch = 0.f;
-	public float Heading = 0.f;
-	public float Roll = 0.f;
+	public float pitch = 0.f;
+	public int heading = 0;
+	public float roll = 0.f;
 
 	private Context context;
 
 	String mocLocationProvider;
 	public boolean MockLocationWorking = false;
-	
-	private float minValue = 0;
-	private float maxValue = 0;
-	private boolean isAccelSupported = true;
-	private Handler mHandler;
 
-	public interface MagAccListener {
+    public float getMaxValue() {
+        return maxValue;
+    }
+
+    public float getMinValue() {
+        return minValue;
+    }
+
+    private float minValue = 0;
+	private float maxValue = 0;
+	private Handler mHandler;
+    private SensorEventListener rotateListener;
+
+    public boolean isRotateSensorSupported() {
+        return m_sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null;
+    }
+
+    public interface MagAccListener {
 		
 		public void onSensorsStateChangeMagAcc();
 		
@@ -176,22 +190,55 @@ public class Sensors implements SensorEventListener, LocationListener {
 
 		}
 	}
-	public Sensors(Context applicationContext) {
+	public Sensors(Context applicationContext, final App app) {
 		this.context = applicationContext;
-
+        this.app = app;
 		m_sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		
-		maxValue = (float) Math.toDegrees(m_sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).getMaximumRange() / 2);
+        rotateSensor =  m_sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+		//locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		maxValue = (float) rotateSensor.getMaximumRange();
 		minValue = -maxValue;
 
-		Criteria criteria = new Criteria();
+        //sensor listener
+        rotateListener = new SensorEventListener() {
+            private float []rotationMatrix = new float[9];
+            private float []orientation = new float[3];
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+
+                m_sensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
+                m_sensorManager.getOrientation(rotationMatrix, orientation);
+                heading = (int)Math.toDegrees(orientation[0]);
+                //calibrate mag with multiwii
+                heading += 90;
+                if(heading > 180){
+                    heading -= 360;
+                }
+
+                pitch =  orientation[1]; //Pitch, rad
+                roll =  orientation[2]; //Roll, rad
+                if(useFilter) {
+                    heading = filterYaw.lowPass(heading);
+                    pitch = filterPitch.lowPass(pitch);
+                    roll = filterRoll.lowPass(roll);
+                }
+                app.getMainActivity().onSensorsStateChangeRotate();
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+            }
+        };
+
+
+		//Criteria criteria = new Criteria();
 		// if (!app.D)
-		criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		provider = locationManager.getBestProvider(criteria, false);
-		if(provider != null)
-		location = locationManager.getLastKnownLocation(provider);
-		if (location != null) {
+		//criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		//provider = locationManager.getBestProvider(criteria, false);
+		//if(provider != null)
+		//location = locationManager.getLastKnownLocation(provider);
+		/*if (location != null) {
 			geoField = new GeomagneticField(Double.valueOf(location.getLatitude()).floatValue(), Double.valueOf(location.getLongitude()).floatValue(), Double.valueOf(location.getAltitude()).floatValue(), System.currentTimeMillis());
 			Declination = geoField.getDeclination();
 
@@ -225,88 +272,40 @@ public class Sensors implements SensorEventListener, LocationListener {
 				if (mGPSListener != null)
 					mGPSListener.onSensorsStateGPSStatusChange();
 			}
-		});
+		});*/
 	}
-	public Sensors(Context context, Handler mHandler) {
-		this(context);
-		this.mHandler = mHandler;
-	}
+
 
 	public void start() {
-
-		registerListeners();
-
+        //register rotate sensor listener
+        if(this.app.getMainActivity().getChkUsePhoneHeading().isChecked()) {
+            m_sensorManager.registerListener(rotateListener, rotateSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        }
 	}
 
-	public void startMagACC() {
-		m_sensorManager.registerListener(this, m_sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_GAME, mHandler);
-		m_sensorManager.registerListener(this, m_sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST, mHandler);
-
-	}
-
-	public void stopMagACC() {
-		m_sensorManager.unregisterListener(this);
-	}
-
-	private void registerListeners() {
-		locationManager.requestLocationUpdates(provider, 0, 0, this);
-	}
+//	public void startMagACC() {
+//		m_sensorManager.registerListener(this, m_sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR), SensorManager.SENSOR_DELAY_FASTEST);
+//	}
+//
+//	public void stopMagACC() {
+//		m_sensorManager.unregisterListener(this);
+//	}
 
 	private void unregisterListeners() {
-		stopMagACC();
+		//stopMagACC();
 		mMagAccListener = null;
 		mGPSListener = null;
 		locationManager.removeUpdates(this);
 	}
 
 	public void stop() {
-		unregisterListeners();
+		m_sensorManager.unregisterListener(rotateListener);
 	}
 
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-	}
-
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		switch (event.sensor.getType()) {
-		case Sensor.TYPE_ACCELEROMETER:
-			System.arraycopy(event.values, 0, m_lastAccels, 0, 3);
-			break;
-		case Sensor.TYPE_MAGNETIC_FIELD:
-			System.arraycopy(event.values, 0, m_lastMagFields, 0, 3);
-			break;
-		default:
-			return;
-		}
-
-		computeOrientation();
-	}
 
 	private void computeOrientation() {
-		if (SensorManager.getRotationMatrix(m_rotationMatrix, null, m_lastAccels, m_lastMagFields)) {
-			SensorManager.getOrientation(m_rotationMatrix, m_orientation);
-			
-			float yaw = (float) (Math.toDegrees(m_orientation[0]) + Declination);
-			float pitch = (float) Math.toDegrees(m_orientation[1]);
-			float roll = (float) Math.toDegrees(m_orientation[2]);
-
-			if(useFilter) {
-			Heading = filterYaw.lowPass(yaw);
-			Pitch = filterPitch.lowPass(pitch);
-			Roll = filterRoll.lowPass(roll);
-			}
-			else
-			{
-			Heading = yaw;
-			Pitch = pitch;
-			Roll = roll;
-			}
-			
 			if (mMagAccListener != null)
 				mMagAccListener.onSensorsStateChangeMagAcc();
-
-		}
 	}
 
 	public void setFilter(float ALPHA) {
@@ -365,15 +364,5 @@ public class Sensors implements SensorEventListener, LocationListener {
 			return new LatLng(0, 0);
 
 	}*/
-	
-	public float getAccelMinValue() {
-		return minValue;
-	}
 
-	public float getAccelMaxValue() {
-		return maxValue;
-	}
-	public boolean isAccelSupported() {
-		return isAccelSupported;
-	}
 }

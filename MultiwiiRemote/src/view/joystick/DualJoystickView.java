@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +18,8 @@ public class DualJoystickView extends LinearLayout {
         private final boolean D = false;
         private Paint dbgPaint1;
 
-        private JoystickView stickL;
-        private JoystickView stickR;
+        public JoystickView stickL;
+        public JoystickView stickR;
 
         private View pad;
 
@@ -38,7 +39,7 @@ public class DualJoystickView extends LinearLayout {
 
         private void initDualJoystickView() {
                 setOrientation(LinearLayout.HORIZONTAL);
-               
+
                 if ( D ) {
                         dbgPaint1 = new Paint(Paint.ANTI_ALIAS_FLAG);
                         dbgPaint1.setColor(Color.CYAN);
@@ -64,8 +65,8 @@ public class DualJoystickView extends LinearLayout {
                
                 stickL.TAG = "L";
                 stickR.TAG = "R";
-                stickL.setPointerId(JoystickView.INVALID_POINTER_ID);
-                stickR.setPointerId(JoystickView.INVALID_POINTER_ID);
+                //stickL.setPointerId(JoystickView.INVALID_POINTER_ID);
+                //stickR.setPointerId(JoystickView.INVALID_POINTER_ID);
 
                 addView(stickL);
 
@@ -130,18 +131,12 @@ public class DualJoystickView extends LinearLayout {
                         canvas.drawRect(1, 1, getMeasuredWidth()-1, getMeasuredHeight()-1, dbgPaint1);
                 }
         }
-       
-        @Override
-        public boolean dispatchTouchEvent(MotionEvent ev) {
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev){
+        Log.d("DualJoystickView", "dispatch touch event");
         boolean l = stickL.dispatchTouchEvent(ev);
         boolean r = stickR.dispatchTouchEvent(ev);
-        return l || r;
-        }
-       
-        @Override
-        public boolean onTouchEvent(MotionEvent ev) {
-        boolean l = stickL.onTouchEvent(ev);
-        boolean r = stickR.onTouchEvent(ev);
-        return l || r;
-        }
+        return true;
+    }
 }

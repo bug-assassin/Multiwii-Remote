@@ -1,5 +1,6 @@
 package com.multiwii.multiwiiremote;
 
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.CompoundButton;
@@ -12,7 +13,24 @@ public class MainActivityEvents {
 	public MainActivityEvents(MainActivity mActivity) {
 		this.mActivity = mActivity;
 	}
+    public JoystickMovedListener _throttleListener = new JoystickMovedListener() {
+        @Override
+        public void OnMoved(int delta_yaw, int delta_throttle) {
+            delta_yaw = delta_yaw / 10; //reduce yaw range. -50~50 SONG BO
+            mActivity.rc.setAdjustedYaw(delta_yaw);
+            mActivity.rc.setAdjustedThrottle(-delta_throttle);
+        }
 
+        @Override
+        public void OnReleased() {
+
+        }
+
+        @Override
+        public void OnReturnedToCenter() {
+
+        }
+    };
 	public JoystickMovedListener _listener = new JoystickMovedListener() {
 		@Override
 		public void OnMoved(int pan, int tilt) {
@@ -54,9 +72,14 @@ public class MainActivityEvents {
 	};
 	public OnCheckedChangeListener mCheckChangeListener = new OnCheckedChangeListener() {
 		@Override
-		public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+		public void onCheckedChanged(CompoundButton arg0, boolean state) {
 			// TODO Auto-generated method stub
-			//mActivity.usePhoneHeading = chkUsePhoneHeading.isChecked();
+            if(state == true){
+                mActivity.app.sensors.start();
+            }
+            else{
+                mActivity.app.sensors.stop();
+            }
 		}
 	};
 

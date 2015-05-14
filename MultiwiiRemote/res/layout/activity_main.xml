@@ -54,20 +54,12 @@
         android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/joystickView"
-        android:text="@string/connectionStatus"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-    
-    <view.joystick.JoystickView
-        android:id="@+id/joystickView"
-        android:layout_width="300dip"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/aux2Btn"
-        android:layout_toRightOf="@+id/throttleView" />
+            android:text="@string/connectionStatus"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_alignBottom="@+id/DualJoystickView"
+            android:layout_alignParentLeft="true" />
 
-    <ToggleButton
+            <ToggleButton
         android:id="@+id/aux4Btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -90,9 +82,9 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/aux1Btn"
-        android:layout_alignRight="@+id/joystickView"
-        android:text="@string/switchModeBtn" />
+        android:text="@string/switchModeBtn"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/DualJoystickView" />
 
     <TextView
         android:id="@+id/debugTxt"
@@ -127,5 +119,18 @@
         android:layout_toLeftOf="@+id/switchModes"
         android:text="@string/phone_heading" />
 
-</RelativeLayout>
+            <view
+                android:layout_width="300dip"
+                android:layout_height="match_parent"
+                class="view.joystick.DualJoystickView"
+                android:id="@+id/DualJoystickView"
+                android:layout_alignParentTop="false"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="false"
+                android:layout_toRightOf="@+id/aux1Btn"
+                android:layout_below="@+id/aux2Btn"
+                android:visibility="visible" />
+
+        </RelativeLayout>
 </RelativeLayout>

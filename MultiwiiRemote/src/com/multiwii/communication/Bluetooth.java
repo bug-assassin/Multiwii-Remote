@@ -198,4 +198,10 @@ return Connected;
 		return CommunicationMode.BLUETOOTH;
 	}
 
+	@Override
+	protected void connectionLost() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

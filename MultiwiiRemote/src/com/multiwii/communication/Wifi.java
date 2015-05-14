@@ -5,8 +5,12 @@ import java.net.Socket;
 import java.util.List;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class Wifi extends Communication {
@@ -16,23 +20,11 @@ public class Wifi extends Communication {
 	public Wifi(Context context) {
 		super(context);
 		wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-<<<<<<< HEAD
+
 	}
-	//TODO TEST
-	public boolean connectToNetwork(String ssid) {
-		Enable();
-		if(isAlreadyConnectedToSSID(ssid, context)) return true;
-		WifiConfiguration wifiConfiguration = getConfiguredNetwork(wifiManager, ssid);
-		if(wifiConfiguration != null)
-			result = wifiManager.enableNetwork(wifiConfiguration.networkId, true);
-		if(wifiConfiguration == null)
-			sendMessageToUI_Toast("Please add the network to your device.");		
-		return wifiConfiguration != null;
-=======
->>>>>>> origin/master
-	}
+
 	private boolean isAlreadyConnectedToSSID(String ssid) {
-	String mSSID = getCurrentSSID(context);
+	String mSSID = getCurrentSSID();
 	if(mSSID == null) return false;
 		return mSSID.equalsIgnoreCase(ssid);
 	}
@@ -106,18 +98,20 @@ public class Wifi extends Communication {
 			inStream = mySocket.getInputStream();
 			outStream = mySocket.getOutputStream();
 			setState(STATE_CONNECTED);
-			Connected = true;
+			//Connected = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			connectionLost();
+			return false;
 		}
-		return Connected;
+		//Log.d("connect", "connected!!!!!");
+		return true;
 	}
 
 	@Override
 	protected void connectionLost() {
 		setState(STATE_NONE);
-		setState(e.getMessage());
+		//setState(e.getMessage());
 		Connected = false;
 	}
 	

@@ -21,7 +21,7 @@
 	<PreferenceCategory android:title="Wifi" >
 		<EditTextPreference android:key="IPADDRESS" android:title="Ip Address" android:defaultValue="192.168.1.1"/>
 		<EditTextPreference android:key="IPPORT" android:title="Port Number" android:defaultValue="8082"/>
-		<EditTextPreference android:key="SSID" android:title="SSID" android:title="Network address" android:summary="(Optional) Enter the network address also known as SSID to automatically connect to it." android:defaultValue=""/>
+		<EditTextPreference android:key="SSID" android:title="SSID" android:summary="(Optional) Enter the network address also known as SSID to automatically connect to it." android:defaultValue=""/>
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="Aux Rename" >
