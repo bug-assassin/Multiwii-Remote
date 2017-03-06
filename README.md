@@ -1,7 +1,6 @@
 # DEPRECATED
 
-Multiwii-Remote
-===============
+## Multiwii-Remote
 
 A free android app for controlling a multiwii copter.
 
